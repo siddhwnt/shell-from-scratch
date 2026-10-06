@@ -1,34 +1,14 @@
-[![progress-banner](https://backend.codecrafters.io/progress/shell/7b256afa-bf98-4652-bd0c-93903d5ac87d)](https://app.codecrafters.io/users/siddhwnt?r=2qF)
+# Shell
 
-This is a starting point for C solutions to the
-["Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview).
+A Unix-like shell built from scratch in **C** to explore how command-line interpreters work under the hood.
 
-In this challenge, you'll build your own POSIX compliant shell that's capable of
-interpreting shell commands, running external programs and builtin commands like
-cd, pwd, echo and more. Along the way, you'll learn about shell command parsing,
-REPLs, builtin commands, and more.
+The project is built as part of the **CodeCrafters Shell challenge**, with a focus on understanding Unix processes, system calls, command execution, and I/O at a low level.
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+## Tech Stack until now
 
-# Passing the first stage
+- C
+- Unix/POSIX system calls
+- Make
+- Linux
 
-The entry point for your `shell` implementation is in `src/main.c`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
-
-```sh
-codecrafters submit
-```
-
-Time to move on to the next stage!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally
-1. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.c`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
+Built to learn systems programming by understanding and implementing the fundamentals behind a shell.
