@@ -28,7 +28,8 @@ bool isDirectoryExists(const char *path)
     return false;
 }
 
-char *handle_pwd(char *args[])
+// char *handle_pwd(char *args[])
+char *handle_pwd()
 {
     char *output = malloc(4096);
 
@@ -87,7 +88,7 @@ char *handle_cd(char *args[])
 }
 bool find_command(char *command)
 {
-    for (int i = 0; i < MY_COMMANDS_COUNT; i++)
+    for (int i = 0; i < (int)MY_COMMANDS_COUNT; i++)
     {
         if (strcmp(my_commands[i].name, command) == 0)
         {
@@ -100,7 +101,7 @@ bool find_command(char *command)
 
 char *handleCommand(char *command, char *args[])
 {
-    for (int i = 0; i < MY_COMMANDS_COUNT; i++)
+    for (int i = 0; i < (int)MY_COMMANDS_COUNT; i++)
     {
         if (strcmp(my_commands[i].name, command) == 0)
         {

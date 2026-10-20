@@ -37,6 +37,8 @@ static char redirect_storage[4096];
 char *error_redirect_file = NULL;
 static char error_redirect_storage[4096];
 
+bool isAppend = false;
+
 #define OUTPUT_SIZE 4096
 
 void setUpPath()
@@ -73,7 +75,7 @@ int isFileExists(const char *path)
 bool isBuiltIn(char *rest)
 {
   // printf("Checking in builtin\n");
-  for (int i = 0; i < builtin_words_count; i++)
+  for (size_t i = 0; i < builtin_words_count; i++)
   {
     if (strcmp(builtin_words[i], rest) == 0)
     {
@@ -387,6 +389,8 @@ void parseRest(char *rest, char *args[])
       args[args_count][arg_pos++] = rest[++i];
     }
 
+    // Append output to file
+
     else if (c == '>' || c == '1' || c == '2')
     {
       if (c == '1' || c == '2')
@@ -449,8 +453,8 @@ void parseRest(char *rest, char *args[])
             else if (c == '"')
               double_quote = true;
             else if (c == ' ')
-              break; 
-            else 
+              break;
+            else
               storage[redirect_pos++] = c;
           }
 
@@ -463,13 +467,18 @@ void parseRest(char *rest, char *args[])
           error_redirect_file = storage;
         else
           redirect_file = storage;
-
       }
 
       // Plain >
       else
       {
-
+        // Check if needs to be appended
+        if(rest[i+1] == '>')
+        {
+          isAppend = true;
+          i++;
+        } 
+        
         i++;
 
         while (rest[i] == ' ')
@@ -486,7 +495,7 @@ void parseRest(char *rest, char *args[])
         redirect_storage[redirect_pos] = '\0';
         redirect_file = redirect_storage;
 
-        break;
+        continue;
       }
     }
 
@@ -593,7 +602,7 @@ int getCommand(char *text, char *command)
 {
   bool inside_single_quotes = false, inside_double_quotes = false;
   int arg_pos = 0;
-  for (int i = 0; i < strlen(text); i++)
+  for (size_t i = 0; i < strlen(text); i++)
   {
     char c = text[i];
 
@@ -674,6 +683,7 @@ void parseText(char *text, char *command, char *args[])
 {
   redirect_file = NULL;
   error_redirect_file = NULL;
+  isAppend = false;
   redirect_storage[0] = '\0';
   error_redirect_storage[0] = '\0';
 
@@ -703,7 +713,7 @@ void parseText(char *text, char *command, char *args[])
   parseRest(rest, args);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
   // Flush after every printf
   setbuf(stdout, NULL);
@@ -740,16 +750,34 @@ int main(int argc, char *argv[])
     {
       if (redirect_file != NULL)
       {
-        FILE *fptr_redirected = fopen(redirect_file, "w");
-
-        if (fptr_redirected == NULL)
+        if (isAppend)
         {
-          perror("fopen");
+          FILE *fptr_redirected = fopen(redirect_file, "a");
+
+          if (fptr_redirected == NULL)
+          {
+            perror("fopen");
+          }
+          else
+          {
+            fprintf(fptr_redirected, "%s", output);
+            fclose(fptr_redirected);
+          }
         }
         else
         {
-          fprintf(fptr_redirected, "%s", output);
-          fclose(fptr_redirected);
+
+          FILE *fptr_redirected = fopen(redirect_file, "w");
+
+          if (fptr_redirected == NULL)
+          {
+            perror("fopen");
+          }
+          else
+          {
+            fprintf(fptr_redirected, "%s", output);
+            fclose(fptr_redirected);
+          }
         }
       }
       else

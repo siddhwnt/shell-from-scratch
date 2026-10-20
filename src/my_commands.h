@@ -8,7 +8,8 @@ typedef struct
     CommandHandler handler;
 } Command;
 
-char* handle_pwd(char *args[]);
+// char* handle_pwd(char *args[]);
+char* handle_pwd();
 char* handle_cd(char *args[]);
 bool find_command(char *command);
 
