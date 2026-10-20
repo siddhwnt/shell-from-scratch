@@ -1,4 +1,7 @@
 // Declarations for builtin words
-extern const char *builtin_words[];
 
-extern const size_t builtin_words_count;
+extern char *path_locations[100];
+
+bool isInPath(char *rest);
+
+extern int current_path_count;

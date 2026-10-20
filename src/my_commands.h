@@ -1,16 +1,28 @@
-extern char program_dir[4096];
 
-typedef char* (*CommandHandler)(char *args[]);
+#ifndef MY_COMMANDS_H
+#define MY_COMMANDS_H
 
-typedef struct
-{
-    char *name;
+#include <stdbool.h>
+
+typedef char *(*CommandHandler)(char *args[]);
+
+typedef struct {
+    const char *name;
     CommandHandler handler;
 } Command;
 
-// char* handle_pwd(char *args[]);
-char* handle_pwd();
-char* handle_cd(char *args[]);
-bool find_command(char *command);
+extern char program_dir[4096];
 
+extern Command my_commands[];
+
+bool find_command(char *command);
 char *handleCommand(char *command, char *args[]);
+
+// Built-in handlers.
+char *handle_exit(char *args[]);
+char *handle_pwd(char *args[]);
+char *handle_cd(char *args[]);
+char *handle_echo(char *args[]);
+char *handle_type(char *args[]);
+
+#endif

@@ -9,15 +9,6 @@
 #include "main.h"
 #include <fcntl.h>
 
-const char *builtin_words[] = {
-    "echo",
-    "type",
-    "exit",
-    "pwd",
-    "cd"};
-
-const size_t builtin_words_count = sizeof(builtin_words) / sizeof(builtin_words[0]);
-
 static char path_copy[4096];
 
 // Global variables for PATH
@@ -72,19 +63,6 @@ int isFileExists(const char *path)
   return 1;
 }
 
-bool isBuiltIn(char *rest)
-{
-  // printf("Checking in builtin\n");
-  for (size_t i = 0; i < builtin_words_count; i++)
-  {
-    if (strcmp(builtin_words[i], rest) == 0)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool isExecutable(char *filepath)
 {
   if (access(filepath, X_OK) == 0)
@@ -120,34 +98,6 @@ bool isInPath(char *rest)
     }
   }
   return false;
-}
-
-// Handlers
-char *handleEcho(char *args[])
-{
-  char *output = malloc(OUTPUT_SIZE);
-
-  if (output == NULL)
-  {
-    perror("malloc");
-    return NULL;
-  }
-
-  output[0] = '\0';
-
-  int i = 0;
-
-  while (args[i] != NULL)
-  {
-    strcat(output, args[i]);
-
-    if (args[i + 1] != NULL)
-      strcat(output, " ");
-
-    i++;
-  }
-  strcat(output, "\n");
-  return output;
 }
 
 char *handlePathExecutable(char *command, char *args[])
@@ -414,6 +364,13 @@ void parseRest(char *rest, char *args[])
         // Skip >
         i++;
 
+        // Check if need to append  
+        if (rest[i] == '>')
+        {
+          isAppend = true;
+          i++;
+        }
+
         while (rest[i] == ' ')
           i++;
 
@@ -473,7 +430,7 @@ void parseRest(char *rest, char *args[])
       else
       {
         // Check if needs to be appended
-        if(rest[i+1] == '>')
+        if (rest[i + 1] == '>')
         {
           isAppend = true;
           i++;
@@ -514,73 +471,10 @@ void parseRest(char *rest, char *args[])
   args[args_count] = NULL;
 }
 
-char *handleType(char *args[])
-{
-  char *output = malloc(4096);
-
-  if (output == NULL)
-  {
-    perror("malloc");
-    return NULL;
-  }
-
-  output[0] = '\0';
-
-  int i = 0;
-
-  while (args[i] != NULL)
-  {
-    char *keyword = args[i];
-
-    if (isBuiltIn(keyword))
-    {
-      strcat(output, keyword);
-      strcat(output, " is a shell builtin\n");
-    }
-    else if (isInPath(keyword))
-    {
-      char keyword_location[4096];
-
-      strcpy(keyword_location, path_locations[current_path_count]);
-      strcat(keyword_location, "/");
-      strcat(keyword_location, keyword);
-
-      strcat(output, keyword);
-      strcat(output, " is ");
-      strcat(output, keyword_location);
-      strcat(output, "\n");
-    }
-    else
-    {
-      strcat(output, keyword);
-      strcat(output, ": not found\n");
-    }
-
-    i++;
-  }
-
-  return output;
-}
-
 char *executeCommand(char *command, char *args[])
 {
-  // Handle echo
-  if (strcmp(command, "echo") == 0)
-  {
-    return handleEcho(args);
-  }
 
-  // Handle exit
-  if (strcmp(command, "exit") == 0)
-  {
-    exit(EXIT_SUCCESS);
-  }
 
-  // Handle type
-  if (strcmp(command, "type") == 0)
-  {
-    return handleType(args);
-  }
 
   // Handle command in PATH
   if (isInPath(command))
