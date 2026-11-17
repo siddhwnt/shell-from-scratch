@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <ctype.h>
 
 #include "my_commands.h"
 #include "main.h"
-#include <fcntl.h>
 
 static char path_copy[4096];
 
@@ -364,7 +366,7 @@ void parseRest(char *rest, char *args[])
         // Skip >
         i++;
 
-        // Check if need to append  
+        // Check if need to append
         if (rest[i] == '>')
         {
           isAppend = true;
@@ -434,8 +436,8 @@ void parseRest(char *rest, char *args[])
         {
           isAppend = true;
           i++;
-        } 
-        
+        }
+
         i++;
 
         while (rest[i] == ' ')
@@ -473,8 +475,6 @@ void parseRest(char *rest, char *args[])
 
 char *executeCommand(char *command, char *args[])
 {
-
-
 
   // Handle command in PATH
   if (isInPath(command))
@@ -607,6 +607,68 @@ void parseText(char *text, char *command, char *args[])
   parseRest(rest, args);
 }
 
+int getUserInput(char *text, size_t size,
+                 struct termios oldt,
+                 struct termios newt)
+{
+  size_t pos = 0;
+  int ch;
+
+  // Switch to non-canonical mode
+  if (tcsetattr(STDIN_FILENO, TCSANOW, &newt) == -1)
+  {
+    perror("tcsetattr");
+    return -1;
+  }
+
+  while (1)
+  {
+    ch = getchar();
+
+    if (ch == EOF)
+    {
+      putchar('\n');
+      break;
+    }
+
+    if (ch == '\n' || ch == '\r')
+    {
+      putchar('\n');
+      break;
+    }
+
+    else if (ch == '\t')
+    {
+      printf("TAB HIT");
+    }
+
+    else if (ch == 127 || ch == 8)
+    {
+      if (pos > 0)
+      {
+        pos--;
+        printf("\b \b");
+      }
+    }
+
+    else if (isprint((unsigned char)ch))
+    {
+      if (pos < size - 1)
+      {
+        text[pos++] = ch;
+        putchar(ch);
+      }
+    }
+  }
+
+  // Always restore original terminal settings
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+
+  text[pos] = '\0';
+
+  return (ch == EOF) ? -1 : 0;
+}
+
 int main()
 {
   // Flush after every printf
@@ -623,14 +685,27 @@ int main()
     printf("Cannot initialize current directory");
   }
 
+  // Make terminal Canonical to get TAB and other hotkeys
+  struct termios oldt, newt;
+  // Save original terminal settings
+  tcgetattr(STDIN_FILENO, &oldt);
+
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  newt.c_cc[VMIN] = 1;
+  newt.c_cc[VTIME] = 0;
+
   // Start shell loop
+
   while (1)
   {
-    printf("$ ");
-    if (fgets(text, sizeof(text), stdin) == NULL)
+    printf("%s:$ ", program_dir);
+
+    if (getUserInput(text, sizeof(text), oldt, newt) == -1)
     {
       break;
     }
+
     text[strcspn(text, "\n")] = '\0';
 
     char command[100];
